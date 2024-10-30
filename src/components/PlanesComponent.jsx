@@ -1,5 +1,7 @@
     import { useEffect,useState } from "react";
-    import axios from 'axios';
+    import { useNavigate } from 'react-router-dom';
+    //import axios from 'axios';
+    import { MuySaludableApi } from "../api/MuySaludableApi";
 
 
     function PlanesComponent(  ) {
@@ -7,10 +9,13 @@
       const [modalVisible, setModalVisible] = useState(false);
       const [selectedView, setSelectedView] = useState(null);
 
+      const navigate = useNavigate();
+
       useEffect(() => {
         const fetchPlanes = async () => {
           try {
-            const response = await axios.get('http://localhost:8000/api/planesAlimenticios');
+            const response = await MuySaludableApi.get('/planesAlimenticios');
+            
             setPlanes(response.data.elementos);
           } catch (error) {
             console.error('Error al cargar los planes:', error);
@@ -29,14 +34,18 @@
         setModalVisible(false);
       };
 
+      const handleSelectPlan = () => {
+        //navigate('/resumen-plan');
+        navigate("/resumen-plan", { state: { selectedView } });
+      }; 
+
 
       return (
         <div className="bg-gray-200 min-h-screen flex justify-center items-center">
           <div className="bg-white w-full max-w-2xl mx-auto p-8 shadow-lg rounded-lg text-center">
             <div className="flex flex-col items-center bg-white relative min-h-screen">
-            <h1 className="text-green-800 text-2xl font-bold mb-6">
-            Bienvenido a Muy Saludable
-            </h1>
+            <h1 className="text-2xl font-extrabold text-green-800 mb-6">BIENVENIDO A MUY SALUDABLE</h1>
+
           {/* Imagen centrada */}
           <img
             src="https://muysaludable.com.mx/wp-content/uploads/2020/08/cropped-Logo-Muy-Saludable-2-99x103.png"
@@ -63,7 +72,7 @@
                   <button
                     key={element.id}
                     onClick={() => handleOpenModal(element)}
-                    className="w-11/12 border-2 border-orange-400 bg-white rounded-lg p-3 my-3 shadow-md text-center"
+                    className="max-w-full border-2 border-orange-400 bg-white rounded-lg p-3 my-3 shadow-md text-center"
                   >
                     <p className="text-orange-400 text-xl font-extrabold">{element.nombre}</p>
                       {/* Renderizar cada línea del resumen en un <p> */}
@@ -108,12 +117,12 @@
                 {selectedView?.descripcion_detallada.split("\n").map((linea, index) => (
                   <div key={index} className="flex items-center">
                     <span className="text-green-700 text-xl mr-2">•</span>
-                    <p className="text-green-700 text-base">{linea}</p>
+                    <p className="text-green-700 text-base text-left">{linea}</p>
                   </div>
                 ))}
               </div>
               <button
-                onClick={() => console.log("on navigagte")}
+                onClick={handleSelectPlan}
                 className="bg-orange-400 text-white text-center font-medium w-full rounded-lg py-3 mt-5"
               >
                 Seleccionar
