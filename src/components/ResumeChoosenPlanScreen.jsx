@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from "react-router-dom";
 import { MuySaludableApi } from '../api/MuySaludableApi';
 import LoadingIndicator from './LoadingIndicator';
+import Header from './Header';
 
 
 function ResumeChoosenPlanScreen() {
@@ -61,8 +62,7 @@ function ResumeChoosenPlanScreen() {
     if( email.trim() == "" ){
       alert("Favor de ingresar el email");
     }else {
-      const validRegex =
-        /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+      const validRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
       if (!email.match(validRegex)) {
         alert("Favor de ingresar un correo electrónico válido");
         return;
@@ -87,7 +87,7 @@ function ResumeChoosenPlanScreen() {
        return;
      }
 
-     navigate("/payment", { state: { email } });
+     navigate("/payment", { state: { email, precio: selectedView.precio} });
 
 
     }).catch((error) => {
@@ -113,13 +113,14 @@ function ResumeChoosenPlanScreen() {
   return (
     <div className="bg-gray-200 min-h-screen flex justify-center items-center">
         <div className="bg-white w-full max-w-2xl mx-auto p-5 shadow-lg rounded-lg text-center">
+        <Header />
         <div className="flex flex-col items-center bg-white relative min-h-screen">
-          <h1 className="text-2xl font-extrabold text-green-800 mb-6">RESUMEN DEL PLAN ELEGIDO</h1>
+          <h1 className="text-2xl font-extrabold mb-6" style={{color: "#326807"}}>RESUMEN DEL PLAN ELEGIDO</h1>
 
           {/* Características */}
           <div className="bg-yellow-100 border border-lime-700 rounded-lg p-3 max-w-full mb-6">
-            <h2 className="text-xl font-extrabold text-lime-700 text-center">{selectedView.nombre}</h2>
-              <div className="bg-lime-700 md:bg-opacity-70 text-xl text-white font-extrabold p-2 rounded-lg text-center my-4">
+            <h2 className="text-xl font-extrabold text-center" style={{color: "#326807"}}>{selectedView.nombre}</h2>
+              <div className="md:bg-opacity-70 text-xl text-white font-extrabold p-2 rounded-lg text-center my-4" style={{backgroundColor: "rgba(85, 133, 31, 0.7)"}}>
               ${selectedView.precio}
               </div>
               <div>
@@ -134,13 +135,13 @@ function ResumeChoosenPlanScreen() {
 
           {/* Vigencia */}
           <div className="text-center mb-4">
-            <p className="text-lg font-extrabold text-lime-700">VIGENCIA DEL PLAN</p>
-            <p className="text-lg font-extrabold text-lime-700">{validity}</p>
+            <p className="text-lg font-extrabold" style={{color:"#326807"}}>VIGENCIA DEL PLAN</p>
+            <p className="text-lg font-extrabold" style={{color:"#326807"}}>{validity}</p>
           </div>
 
           {/* Email */}
           {/* Campo de correo electrónico */}
-          <div className="bg-lime-700 border md:bg-opacity-70 border-lime-700 rounded-lg p-4 w-11/12 mb-4">
+          <div className="border md:bg-opacity-70 border-lime-700 rounded-lg p-4 w-11/12 mb-4" style={{backgroundColor: "rgba(85, 133, 31, 0.7)"}}>
             <label className="block text-white font-bold mb-2" htmlFor="email">
               Ingresa tu correo electrónico
             </label>
@@ -155,7 +156,7 @@ function ResumeChoosenPlanScreen() {
           </div>
 
           {/* Botón Confirmación */}
-          <button className="bg-orange-400 text-white rounded-lg p-2 w-11/12 mt-4" onClick={handleConfirmEmail}>
+          <button className="text-white rounded-lg p-2 w-11/12 mt-4" style={{backgroundColor: "#faa029"}} onClick={handleConfirmEmail}>
             Confirmar y proceder al pago
           </button>
 
