@@ -1,8 +1,9 @@
 import PropTypes from 'prop-types';
 import Header from './Header';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import LoadingIndicator from './LoadingIndicator';
 import { MuySaludableApi } from '../api/MuySaludableApi';
+import ModalSuccess from './ModalSuccess';
 
 const formatCurrency = (amount) => {
     if (typeof amount === "string") {
@@ -16,7 +17,7 @@ const formatCurrency = (amount) => {
     });
   };
 
-const CreditCardForm = ({ userEmail, planCost }) => {
+const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate }) => {
     const [loading, setLoading] = useState(false);
     const [visibleErrorAlert, setVisibleErrorAlert] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
@@ -43,6 +44,18 @@ const CreditCardForm = ({ userEmail, planCost }) => {
 
     const [discountAmount, setDiscountAmount] = useState(formatCurrency(""));
     const [finalPrice, setFinalPrice] = useState(formatCurrency(planCost));
+    
+    const [modalSuccessVisible, setModalSuccessVisible] = useState(false);
+    //const [indicatorVisible, setIndicatorVisible] = useState(false);
+    const [disableButton, setDisableButton] = useState(false);
+
+    const [idUsuario, setIdUsuario] = useState(null);
+
+    useEffect(() => {
+        if (idUsuario) {
+            showSuccessModal();
+        }
+    }, [idUsuario]);
 
     async function handleValidateDiscount () {
         
@@ -112,7 +125,7 @@ const CreditCardForm = ({ userEmail, planCost }) => {
         }else{
             setInputDisabled(false);
         }
-      }
+    }
 
     const handleCardHolderChange = (e) => {
         let text = e.target.value;
@@ -163,7 +176,7 @@ const CreditCardForm = ({ userEmail, planCost }) => {
         if ( inputDisabled ) {
           console.log("PROCEDEMOS A CREAR AL USUARIO Y LA SUSCRIPCIÓN")
           //En caso de que el descuento sea de 100% se procede directamente a crear el usuario y la suscripcion sin necesidad de crear el pago
-          //createUserSuscription();
+          createUserSuscription();
     
         } else {
           // Validar cardHolder
@@ -253,7 +266,75 @@ const CreditCardForm = ({ userEmail, planCost }) => {
             setErrorMessage(stringError);
           }
         }
-      }
+    }
+
+
+
+    const createUserSuscription = async () => {
+        /* ToDo: Generar flujo para renovar suscripción */
+
+        const bodyUser = {
+            email: userEmail,
+        };
+
+        console.log("PLAN SELECCIONADO");
+        
+        console.log(JSON.stringify(selectedPlan, null, 2));
+    
+        MuySaludableApi.post("/usuarios", bodyUser)
+            .then((responseUsuario) => {
+                console.log("RESPUESTA CREACIÓN DE USUARIO");
+                console.log(JSON.stringify(responseUsuario, null, 2));
+                //Una vez creado el usuario, se procede a generar el registro de suscripción
+                const bodySuscripcion = {
+                id_usuario: responseUsuario.data.data.id,
+                id_plan_alimenticio: selectedPlan.id,
+                id_pago: "FREE-DISCOUNT-CODE-" + discountCode,
+                fecha_expiracion: expirationDate,
+                estado: "Activo",
+                };
+
+                //Establece idUsuario en el state
+                setIdUsuario(responseUsuario.data.data.id);
+                //console.log(JSON.stringify(bodySuscripcion, null, 2));
+                //Una vez creado el usuario, se procede a generar el registro de suscripción
+                MuySaludableApi.post(
+                "/suscripciones",
+                bodySuscripcion
+                )
+                .then((responseSuscripcion) => {
+                    console.log("RESPUESTA SUSCRIPCIÓN");
+                    console.log(JSON.stringify(responseSuscripcion, null, 2));
+
+                   // setIdUsuario(responseSuscripcion.data.data.id_usuario);
+
+                    setLoading(false);
+
+                    //Muestra ventana modal para establecer contraseña
+                    //showSuccessModal();
+                })
+                .catch((errorSuscripcion) => {
+                    setLoading(false);
+                    console.log(
+                    "Mensaje de error en suscripción: ",
+                    errorSuscripcion.response.data.message
+                    );
+                });
+        })
+        .catch((errorUsuario) => {
+            setLoading(false);
+            console.log(
+            "Mensaje de error en creación de usuario: ",
+            errorUsuario.response.data.message
+            );
+        });
+
+    }
+
+    const showSuccessModal = () => {
+        //setIdUsuario(idUsuario);
+        setModalSuccessVisible(true);
+    };
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white shadow-md rounded-lg space-y-4">
@@ -399,6 +480,18 @@ const CreditCardForm = ({ userEmail, planCost }) => {
       }
       </button>
 
+      
+        <ModalSuccess
+            visible={modalSuccessVisible}
+            //visibleIndicator={indicatorVisible}
+            disableButton={disableButton}
+            idUsuario={idUsuario}
+            //handlePassword={(text) => handlePassword(text)}
+            //handleConfirmPassword={(text) => handleConfirmPassword(text)}
+            //onConfirmContinue={handleConfirmContinue}
+        />
+
+
       { loading && <LoadingIndicator /> }
     </div>
   );
@@ -408,6 +501,8 @@ const CreditCardForm = ({ userEmail, planCost }) => {
 CreditCardForm.propTypes = {
   userEmail: PropTypes.string.isRequired,
   planCost: PropTypes.number.isRequired,
+  selectedPlan: PropTypes.object,
+  expirationDate: PropTypes.string
 };
 
 export default CreditCardForm;

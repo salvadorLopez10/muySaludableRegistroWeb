@@ -13,16 +13,20 @@ function ResumeChoosenPlanScreen() {
   const [loading, setLoading] = useState(false);
 
   const [validity, setValidity] = useState("");
+  const [expirationDate, setExpirationDate] = useState("");
 
   const handleEmailChange = (e) => setEmail(e.target.value);
 
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("selectedview")
+    console.log(JSON.stringify(selectedView,null,2));
     
     const vigencia = setValidityDate(selectedView);
     setValidity(vigencia[0]);
-    //console.log(JSON.stringify(vigencia,null,2));
+    setExpirationDate(vigencia[1]);
+    console.log(JSON.stringify(vigencia,null,2));
 
   }, [selectedView]);
 
@@ -87,7 +91,7 @@ function ResumeChoosenPlanScreen() {
        return;
      }
 
-     navigate("/payment", { state: { email, precio: selectedView.precio} });
+     navigate("/payment", { state: { email, precio: selectedView.precio, selectedView, expirationDate} });
 
 
     }).catch((error) => {
@@ -104,8 +108,6 @@ function ResumeChoosenPlanScreen() {
          console.log("Error en la transacción SIN DATA:", error.message);
        }
    });
-
-
 
   }
 
