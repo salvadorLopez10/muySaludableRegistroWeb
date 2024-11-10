@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
+import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { MuySaludableApi } from '../api/MuySaludableApi';
@@ -23,6 +24,8 @@ const ModalSuccess = ({
     const handlePassword = (e) => setPassword(e.target.value);
 
     const handleConfirmPassword = (e) => setConfirmPassword(e.target.value);
+
+    const navigate = useNavigate();
 
     if (!visible) return null;
 
@@ -68,6 +71,7 @@ const ModalSuccess = ({
             //console.log(JSON.stringify(responsePassword, null, 2));
             alert("La contraseña se estableció correctamente" );
             console.log("dirigirnos a una nueva pantalla con QR de app y mostrar texto indicando que debemos descargar la app para contestar el cuestionario");
+            navigate("/welcome");
             
 
             

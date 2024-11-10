@@ -15,6 +15,7 @@ async function loadConfig() {
     //baseURL: config.baseURL,
     MuySaludableApi = axios.create({
       baseURL: "http://192.168.100.130:8000/api",
+      //baseURL: "http://192.168.1.205:8000/api",
       //baseURL: config.baseURL,
       headers: {
         'Content-Type': 'application/json',

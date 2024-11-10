@@ -48,9 +48,11 @@
 
           {/* Imagen centrada */}
           <img
-            src="https://muysaludable.com.mx/wp-content/uploads/2020/08/cropped-Logo-Muy-Saludable-2-99x103.png"
+            src="/src/img/logoMuySaludableMR.png"
             alt="Logo Muy Saludable"
             className="mx-auto"
+            width={100}
+            height={100}
           />
           
               {/* <img

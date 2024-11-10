@@ -21,7 +21,7 @@ const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate }) =
     const [loading, setLoading] = useState(false);
     const [visibleErrorAlert, setVisibleErrorAlert] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-    
+    const [valStripe, setValStripe] = useState("");
     //const [currentPrice, setCurrentPrice] = useState(planCost);
     const [discountCode, setDiscountCode] = useState("");
     const [showDiscountCode, setShowDiscountCode] = useState(false);
@@ -52,10 +52,29 @@ const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate }) =
     const [idUsuario, setIdUsuario] = useState(null);
 
     useEffect(() => {
+        // console.log("EFFECT VALUES CREDITCARDFORM");
+        // console.log("VALUES: " + JSON.stringify(values, null, 3));
+        getValStripe();
+      }, []);
+
+    useEffect(() => {
         if (idUsuario) {
             showSuccessModal();
         }
     }, [idUsuario]);
+    
+    const getValStripe = async() =>{
+        console.log("ENTRA PARA OBTENER KEY DE STRIPE");
+        await MuySaludableApi.get("/config/stripe_client").then((response) => {
+          console.log("STRIPE DATA");
+          console.log(JSON.stringify(response.data.data,null,2));
+          setValStripe(response.data.data);
+    
+        }).catch(() =>{
+          console.log("Error al obtener key de stripe client");
+          console.log(error);
+        });
+      }
 
     async function handleValidateDiscount () {
         
@@ -268,7 +287,209 @@ const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate }) =
         }
     }
 
-
+    /*
+    const createTokenPayment = async () => {
+        setLoading(true);
+        const response = await stripeClient.createToken({
+          card: {
+            number: values.cardNumber.replace(/\s/g, ""),
+            exp_month: parseInt(values.expiration.split("/")[0]),
+            exp_year: parseInt("20" + values.expiration.split("/")[1]),
+            cvc: values.cvv,
+          },
+        });
+    
+        console.log("RESPONSE STRIPE: " + JSON.stringify(response, null, 3));
+    
+        if (response.id !== undefined && response.id !== null) {
+          //Mandar a llamar el post del endpoint de stripe para generar el pago
+          //el endpoint espera: amount, id (token de stripe), description (para identificar el plan contratado)
+          console.log(
+            "SE MANDA EL PAGO STRIPE CON EL TOKEN OBTENIDO : " + response.id
+          );
+    
+          //El precio final se obtiene y se convierte a número
+          const total = parseFloat( finalPrice.replace(/[^0-9.-]+/g, ""));
+    
+          const body = {
+            id: response.id,
+            //amount: parseInt(values.precio) * 100, //Se multiplica * 100 ya que el monto se envía en centavos
+            amount: total * 100,
+            plan: values.plan
+          };
+    
+          const responsePayment = await MuySaludableApi.post(
+            "/stripe/create",
+            body
+          ).then((respuesta:any) => {
+              
+              console.log("RESPUESTA PAGO");
+              console.log(JSON.stringify(respuesta, null, 2));
+    
+              //Se obtiene ID de pago
+              setIdPago(respuesta.data.data.id);
+    
+              //En caso de tener información del usuario en el AuthStore, quiere decir  que es una renovación, por lo tanto, la info del usuario se actualiza
+              //Actualiza suscripción, inhabilitando la suscripción actual
+              if (userInfo !== undefined) {
+                const bodyInactiveSuscripcion = {
+                  estado: "Vencido",
+                };
+    
+                const actualizaSuscripcion = MuySaludableApi.put(
+                  `/suscripciones/${userInfo?.id_suscripcion}`,
+                  bodyInactiveSuscripcion
+                )
+                  .then((responseSuscripcion:any) => {
+                    //console.log(JSON.stringify(responseSuscripcion, null, 2));
+                    const bodySuscripcion = {
+                      id_usuario: userInfo?.id,
+                      id_plan_alimenticio: values.idPlan,
+                      id_pago:
+                        values.discountCode != ""
+                          ? respuesta.data.data.id +
+                            "-DISCOUNT-CODE-" +
+                            values.discountCode
+                          : respuesta.data.data.id,
+                      fecha_expiracion: values.fechaExpiracion,
+                      estado: "Activo",
+                    };
+    
+                    const suscripción = MuySaludableApi.post(
+                      "/suscripciones",
+                      bodySuscripcion
+                    )
+                      .then((responseSuscripcion:any) => {
+                        console.log("RESPUESTA SUSCRIPCIÓN");
+                        console.log(JSON.stringify(responseSuscripcion, null, 2));
+    
+                        setLoading(false);
+    
+                        //Se muestra directamente el quiz resumido
+                        Alert.alert(
+                          "Éxito",
+                          "¡Tu nueva suscripción se ha generado correctamente!.\nPara continuar es necesario contestar el siguiente cuestionario y de esta manera mantener actualizada tu información",
+                          [
+                            {
+                              text: "Continuar",
+                              onPress: () =>
+                                navigation.dispatch(
+                                  CommonActions.reset({
+                                    index: 0,
+                                    routes: [
+                                      {
+                                        name: "QuizSummaryScreen",
+                                        params: { userInfo },
+                                      },
+                                    ],
+                                  })
+                                ),
+                            },
+                          ],
+                          { cancelable: false }
+                        );
+                      })
+                      .catch((errorSuscripcion:any) => {
+                        setLoading(false);
+                        console.log(
+                          "Mensaje de error en suscripción: ",
+                          errorSuscripcion.response.data.message
+                        );
+                      });
+                  })
+                  .catch((errorDeleteAccount:any) => {
+                    setLoading(false);
+    
+                    console.log(
+                      "Mensaje de error al INACTIVAR suscripción: ",
+                      errorDeleteAccount.response.data.message
+                    );
+                  });
+              } else {
+                //Inserta usuario con su suscripción
+                const bodyUser = {
+                  email: values.email,
+                };
+                console.log("BODY USER");
+                console.log(JSON.stringify(bodyUser, null, 2));
+    
+                const usuario = MuySaludableApi.post("/usuarios", bodyUser)
+                  .then((responseUsuario:any) => {
+                    console.log("RESPUESTA CREACIÓN DE USUARIO");
+                    console.log(JSON.stringify(responseUsuario, null, 2));
+                    //Una vez creado el usuario, se procede a generar el registro de suscripción
+                    const bodySuscripcion = {
+                      id_usuario: responseUsuario.data.data.id,
+                      id_plan_alimenticio: values.idPlan,
+                      id_pago:
+                        values.discountCode != ""
+                          ? respuesta.data.data.id +
+                            "-DISCOUNT-CODE-" +
+                            values.discountCode
+                          : respuesta.data.data.id,
+                      fecha_expiracion: values.fechaExpiracion,
+                      estado: "Activo",
+                    };
+    
+                    //Establece idUsuario en el state
+                    setIdUsuario(responseUsuario.data.data.id);
+                    //console.log(JSON.stringify(bodySuscripcion, null, 2));
+                    //Una vez creado el usuario, se procede a generar el registro de suscripción
+                    const suscripción = MuySaludableApi.post(
+                      "/suscripciones",
+                      bodySuscripcion
+                    )
+                      .then((responseSuscripcion:any) => {
+                        console.log("RESPUESTA SUSCRIPCIÓN");
+                        console.log(JSON.stringify(responseSuscripcion, null, 2));
+    
+                        setLoading(false);
+    
+                        //Muestra ventana modal para establecer contraseña
+                        showSuccessModal();
+                      })
+                      .catch((errorSuscripcion:any) => {
+                        setLoading(false);
+                        console.log(
+                          "Mensaje de error en suscripción: ",
+                          errorSuscripcion.response.data.message
+                        );
+                      });
+                  })
+                  .catch((errorUsuario:any) => {
+                    setLoading(false);
+                    console.log(
+                      "Mensaje de error en creación de usuario: ",
+                      errorUsuario.response.data.message
+                    );
+                  });
+              }
+    
+    
+          }).catch((error:any) => {
+            // Manejar el error
+              setLoading(false);
+              console.log("ERROR POST PAGO CATCH BLOQUE");
+              //console.log(`Error: ${(error as AxiosError)?.response?.data}`);
+    
+            if (error.response && error.response.data) {
+              if( !error.response.data.success ){
+                  showErrorModal();
+                  console.log("Mensaje de error: ", error.response.data.message);
+              }
+            } else {
+              showErrorModal();
+              console.log("Error en la transacción SIN DATA:", error.message);
+            }
+          });
+           
+        } else {
+           setLoading(false);
+          console.log("NO SE MANDA EL PAGO NO SE OBTUVO TOKEN PARA PAGO");
+          showErrorModal();
+        }
+      };
+      */
 
     const createUserSuscription = async () => {
         /* ToDo: Generar flujo para renovar suscripción */
