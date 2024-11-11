@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import LoadingIndicator from './LoadingIndicator';
 import { MuySaludableApi } from '../api/MuySaludableApi';
 import ModalSuccess from './ModalSuccess';
+import { CardCvcElement, CardExpiryElement, CardNumberElement, useElements, useStripe } from '@stripe/react-stripe-js';
 
 const formatCurrency = (amount) => {
     if (typeof amount === "string") {
@@ -50,6 +51,13 @@ const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate }) =
     const [disableButton, setDisableButton] = useState(false);
 
     const [idUsuario, setIdUsuario] = useState(null);
+
+    const [errorMessageCard, setErrorMessageCard] = useState(null);
+
+    const [idPago, setIdPago] = useState(null);
+
+    const stripe = useStripe();
+    const elements = useElements();
 
     useEffect(() => {
         // console.log("EFFECT VALUES CREDITCARDFORM");
@@ -203,81 +211,82 @@ const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate }) =
           if (cardHolder.trim().length === 0) {
             stringError += "Introduce valor en Nombre del Titular"; 
             setErrorCardHolder(true);
+            setErrorMessageCard("Introduce valor en Nombre del Titular");
           }else{
             setErrorCardHolder(false);
           }
       
           // Validar cardNumber
-          if (cardNumber.trim().length === 0) {
-            stringError += "<br />Introduce el Número de Tarjeta"; 
-            setErrorCard(true);
+        //   if (cardNumber.trim().length === 0) {
+        //     stringError += "<br />Introduce el Número de Tarjeta"; 
+        //     setErrorCard(true);
             
-          } else if (
-            cardNumber.replace(/\D/g, "").length !== 16 &&
-            cardNumber.replace(/\D/g, "").length !== 15
-          ) {
+        //   } else if (
+        //     cardNumber.replace(/\D/g, "").length !== 16 &&
+        //     cardNumber.replace(/\D/g, "").length !== 15
+        //   ) {
 
-            stringError += "<br />Favor de establecer al menos 15 dígitos";
-            setErrorCard(true);
+        //     stringError += "<br />Favor de establecer al menos 15 dígitos";
+        //     setErrorCard(true);
             
-          }else{
-            setErrorCard(false);
-          }
+        //   }else{
+        //     setErrorCard(false);
+        //   }
       
-          if (expiration.trim().length === 0) {
-            stringError += "<br />Introduce la expiración de tu tarjeta"; 
-            setErrorExpiration(true);
+        //   if (expiration.trim().length === 0) {
+        //     stringError += "<br />Introduce la expiración de tu tarjeta"; 
+        //     setErrorExpiration(true);
 
-          } else {
-            const formattedExpiryDate = expiration.replace(/\s/g, ""); // Eliminar espacios en blanco
-            const regex = /^(0[1-9]|1[0-2])\/?([0-9]{2})$/;
+        //   } else {
+        //     const formattedExpiryDate = expiration.replace(/\s/g, ""); // Eliminar espacios en blanco
+        //     const regex = /^(0[1-9]|1[0-2])\/?([0-9]{2})$/;
       
-            if (!regex.test(formattedExpiryDate)) {
+        //     if (!regex.test(formattedExpiryDate)) {
 
-                stringError += "<br />El formato de la fecha de vencimiento debe ser MM/YY";
-                setErrorExpiration(true);
+        //         stringError += "<br />El formato de la fecha de vencimiento debe ser MM/YY";
+        //         setErrorExpiration(true);
 
-            } else {
-              const [month, year] = formattedExpiryDate.split("/").map(Number);
-              const currentYear = new Date().getFullYear() % 100; // Últimos 2 dígitos del año actual
-              const currentMonth = new Date().getMonth() + 1; // Mes actual (de 1 a 12)
+        //     } else {
+        //       const [month, year] = formattedExpiryDate.split("/").map(Number);
+        //       const currentYear = new Date().getFullYear() % 100; // Últimos 2 dígitos del año actual
+        //       const currentMonth = new Date().getMonth() + 1; // Mes actual (de 1 a 12)
     
-              if (month < 1 || month > 12) {
-                stringError += "<br />El mes introducido no es válido"; 
-                setErrorExpiration(true);
-              }else{
-                setErrorExpiration(false);
-              }
+        //       if (month < 1 || month > 12) {
+        //         stringError += "<br />El mes introducido no es válido"; 
+        //         setErrorExpiration(true);
+        //       }else{
+        //         setErrorExpiration(false);
+        //       }
       
-              if ( year < currentYear || (year === currentYear && month < currentMonth) ) {
-                stringError += "<br />La tarjeta está vencida"; 
-                setErrorExpiration(true);
+        //       if ( year < currentYear || (year === currentYear && month < currentMonth) ) {
+        //         stringError += "<br />La tarjeta está vencida"; 
+        //         setErrorExpiration(true);
 
-              }else{
-                setErrorExpiration(false);
-              }
-            }
-          }
+        //       }else{
+        //         setErrorExpiration(false);
+        //       }
+        //     }
+        //   }
       
-          if (cvv.trim().length === 0) {
-            //setErrorCvv("Este campo es requerido");
-            stringError += "<br />Introduce valor en CVV"; 
-            setErrorCVV(true);
+        //   if (cvv.trim().length === 0) {
+        //     //setErrorCvv("Este campo es requerido");
+        //     stringError += "<br />Introduce valor en CVV"; 
+        //     setErrorCVV(true);
 
-          } else if (cvv.trim().length < 3 && cvv.trim().length > 4) {
+        //   } else if (cvv.trim().length < 3 && cvv.trim().length > 4) {
             
-            stringError += "<br />El CVV introducido no es válido";
-            setErrorCVV(true);
-          } else{
-            setErrorCVV(false);
-          }
+        //     stringError += "<br />El CVV introducido no es válido";
+        //     setErrorCVV(true);
+        //   } else{
+        //     setErrorCVV(false);
+        //   }
       
           console.log("PROCEDEMOS A GENERAR EL PAGO");
           
           if ( stringError == "" ) {
             setVisibleErrorAlert(false);
             setErrorMessage("");
-            //createTokenPayment();
+            createTokenPayment();
             console.log("LLAMAMOS CREATETOKENPAYMENT");
           } else {
             
@@ -287,209 +296,124 @@ const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate }) =
         }
     }
 
-    /*
+    
     const createTokenPayment = async () => {
         setLoading(true);
-        const response = await stripeClient.createToken({
-          card: {
-            number: values.cardNumber.replace(/\s/g, ""),
-            exp_month: parseInt(values.expiration.split("/")[0]),
-            exp_year: parseInt("20" + values.expiration.split("/")[1]),
-            cvc: values.cvv,
-          },
-        });
-    
-        console.log("RESPONSE STRIPE: " + JSON.stringify(response, null, 3));
-    
-        if (response.id !== undefined && response.id !== null) {
-          //Mandar a llamar el post del endpoint de stripe para generar el pago
-          //el endpoint espera: amount, id (token de stripe), description (para identificar el plan contratado)
-          console.log(
-            "SE MANDA EL PAGO STRIPE CON EL TOKEN OBTENIDO : " + response.id
-          );
-    
-          //El precio final se obtiene y se convierte a número
-          const total = parseFloat( finalPrice.replace(/[^0-9.-]+/g, ""));
-    
-          const body = {
-            id: response.id,
-            //amount: parseInt(values.precio) * 100, //Se multiplica * 100 ya que el monto se envía en centavos
-            amount: total * 100,
-            plan: values.plan
-          };
-    
-          const responsePayment = await MuySaludableApi.post(
-            "/stripe/create",
-            body
-          ).then((respuesta:any) => {
-              
-              console.log("RESPUESTA PAGO");
-              console.log(JSON.stringify(respuesta, null, 2));
-    
-              //Se obtiene ID de pago
-              setIdPago(respuesta.data.data.id);
-    
-              //En caso de tener información del usuario en el AuthStore, quiere decir  que es una renovación, por lo tanto, la info del usuario se actualiza
-              //Actualiza suscripción, inhabilitando la suscripción actual
-              if (userInfo !== undefined) {
-                const bodyInactiveSuscripcion = {
-                  estado: "Vencido",
-                };
-    
-                const actualizaSuscripcion = MuySaludableApi.put(
-                  `/suscripciones/${userInfo?.id_suscripcion}`,
-                  bodyInactiveSuscripcion
-                )
-                  .then((responseSuscripcion:any) => {
-                    //console.log(JSON.stringify(responseSuscripcion, null, 2));
-                    const bodySuscripcion = {
-                      id_usuario: userInfo?.id,
-                      id_plan_alimenticio: values.idPlan,
-                      id_pago:
-                        values.discountCode != ""
-                          ? respuesta.data.data.id +
-                            "-DISCOUNT-CODE-" +
-                            values.discountCode
-                          : respuesta.data.data.id,
-                      fecha_expiracion: values.fechaExpiracion,
-                      estado: "Activo",
-                    };
-    
-                    const suscripción = MuySaludableApi.post(
-                      "/suscripciones",
-                      bodySuscripcion
-                    )
-                      .then((responseSuscripcion:any) => {
-                        console.log("RESPUESTA SUSCRIPCIÓN");
-                        console.log(JSON.stringify(responseSuscripcion, null, 2));
-    
-                        setLoading(false);
-    
-                        //Se muestra directamente el quiz resumido
-                        Alert.alert(
-                          "Éxito",
-                          "¡Tu nueva suscripción se ha generado correctamente!.\nPara continuar es necesario contestar el siguiente cuestionario y de esta manera mantener actualizada tu información",
-                          [
-                            {
-                              text: "Continuar",
-                              onPress: () =>
-                                navigation.dispatch(
-                                  CommonActions.reset({
-                                    index: 0,
-                                    routes: [
-                                      {
-                                        name: "QuizSummaryScreen",
-                                        params: { userInfo },
-                                      },
-                                    ],
-                                  })
-                                ),
-                            },
-                          ],
-                          { cancelable: false }
-                        );
-                      })
-                      .catch((errorSuscripcion:any) => {
-                        setLoading(false);
-                        console.log(
-                          "Mensaje de error en suscripción: ",
-                          errorSuscripcion.response.data.message
-                        );
-                      });
-                  })
-                  .catch((errorDeleteAccount:any) => {
-                    setLoading(false);
-    
-                    console.log(
-                      "Mensaje de error al INACTIVAR suscripción: ",
-                      errorDeleteAccount.response.data.message
-                    );
-                  });
-              } else {
-                //Inserta usuario con su suscripción
-                const bodyUser = {
-                  email: values.email,
-                };
-                console.log("BODY USER");
-                console.log(JSON.stringify(bodyUser, null, 2));
-    
-                const usuario = MuySaludableApi.post("/usuarios", bodyUser)
-                  .then((responseUsuario:any) => {
-                    console.log("RESPUESTA CREACIÓN DE USUARIO");
-                    console.log(JSON.stringify(responseUsuario, null, 2));
-                    //Una vez creado el usuario, se procede a generar el registro de suscripción
-                    const bodySuscripcion = {
-                      id_usuario: responseUsuario.data.data.id,
-                      id_plan_alimenticio: values.idPlan,
-                      id_pago:
-                        values.discountCode != ""
-                          ? respuesta.data.data.id +
-                            "-DISCOUNT-CODE-" +
-                            values.discountCode
-                          : respuesta.data.data.id,
-                      fecha_expiracion: values.fechaExpiracion,
-                      estado: "Activo",
-                    };
-    
-                    //Establece idUsuario en el state
-                    setIdUsuario(responseUsuario.data.data.id);
-                    //console.log(JSON.stringify(bodySuscripcion, null, 2));
-                    //Una vez creado el usuario, se procede a generar el registro de suscripción
-                    const suscripción = MuySaludableApi.post(
-                      "/suscripciones",
-                      bodySuscripcion
-                    )
-                      .then((responseSuscripcion:any) => {
-                        console.log("RESPUESTA SUSCRIPCIÓN");
-                        console.log(JSON.stringify(responseSuscripcion, null, 2));
-    
-                        setLoading(false);
-    
-                        //Muestra ventana modal para establecer contraseña
-                        showSuccessModal();
-                      })
-                      .catch((errorSuscripcion:any) => {
-                        setLoading(false);
-                        console.log(
-                          "Mensaje de error en suscripción: ",
-                          errorSuscripcion.response.data.message
-                        );
-                      });
-                  })
-                  .catch((errorUsuario:any) => {
-                    setLoading(false);
-                    console.log(
-                      "Mensaje de error en creación de usuario: ",
-                      errorUsuario.response.data.message
-                    );
-                  });
-              }
-    
-    
-          }).catch((error:any) => {
-            // Manejar el error
-              setLoading(false);
-              console.log("ERROR POST PAGO CATCH BLOQUE");
-              //console.log(`Error: ${(error as AxiosError)?.response?.data}`);
-    
-            if (error.response && error.response.data) {
-              if( !error.response.data.success ){
-                  showErrorModal();
-                  console.log("Mensaje de error: ", error.response.data.message);
-              }
-            } else {
-              showErrorModal();
-              console.log("Error en la transacción SIN DATA:", error.message);
+
+        try {
+            if( !stripe || !elements ){
+                setLoading(false);
+                console.log("NO se cargó stripe ni elements");
+                return;
             }
-          });
-           
-        } else {
-           setLoading(false);
-          console.log("NO SE MANDA EL PAGO NO SE OBTUVO TOKEN PARA PAGO");
-          showErrorModal();
+
+            const cardNumberElement = elements.getElement(CardNumberElement);
+
+            if (!cardNumberElement) {
+                console.error("El elemento CardNumberElement no está montado.");
+                setLoading(false);
+                setErrorMessageCard("No se pudo recuperar el elemento de la tarjeta.");
+                return;
+            }
+
+
+            const { token, error } = await stripe.createToken(cardNumberElement,
+                {
+                    name: cardHolder
+
+                });
+
+            if( error ){
+
+                setLoading(false);
+                setErrorMessageCard( error.message ?? "Ha sucedido un error" );
+
+                return;
+            }
+
+            console.log("RESPONSE STRIPE: " + JSON.stringify(token, null, 3));
+            
+            if (token.id !== undefined && token.id !== null) {
+                console.log("OBTUVIMOS TOKEN STRIPE");
+                 //El precio final se obtiene y se convierte a número
+                const total = parseFloat( finalPrice.replace(/[^0-9.-]+/g, ""));
+
+                const body = {
+                    id: token.id,
+                    //amount: parseInt(values.precio) * 100, //Se multiplica * 100 ya que el monto se envía en centavos
+                    amount: total * 100,
+                    plan: selectedPlan.nombre
+                  };
+
+                await MuySaludableApi.post(
+                "/stripe/create",
+                body
+                ).then((respuesta) => {
+
+                    console.log("RESPUESTA PAGO: " + respuesta);
+
+                    setIdPago( respuesta.data.data.id );
+
+                    const bodyUser = {
+                        email: userEmail,
+                    };
+
+                    MuySaludableApi.post("/usuarios", bodyUser)
+                    .then( (responseUsuario) => {
+                        console.log("RESPUESTA CREACIÓN DE USUARIO");
+                        console.log(JSON.stringify(responseUsuario, null, 2));
+
+                        const bodySuscripcion = {
+                            id_usuario: responseUsuario.data.data.id,
+                            id_plan_alimenticio: selectedPlan.id,
+                            id_pago:
+                            discountCode != ""
+                                ? respuesta.data.data.id +
+                                  "-DISCOUNT-CODE-" + discountCode
+                                : respuesta.data.data.id,
+                            fecha_expiracion: expirationDate,
+                            estado: "Activo",
+                        };
+
+                        MuySaludableApi.post(
+                            "/suscripciones",
+                            bodySuscripcion
+                          ).then((responseSuscripcion) => {
+
+                            console.log("RESPUESTA SUSCRIPCIÓN");
+                            console.log(JSON.stringify(responseSuscripcion, null, 2));
+
+                            setIdUsuario(responseUsuario.data.data.id);
+
+                            setLoading(false);
+
+                            //showSuccessModal();
+
+
+                          }).catch( (errorSuscripcion) => {
+
+                          });
+
+                    })
+                    .catch();
+
+
+                }).catch((error) => {
+
+                });
+
+            }else{
+                setErrorMessageCard("Ha ocurrido un error con los datos de tu tarjeta, por favor vuelve a intentar");
+            }
+            
+        } catch (error) {
+            setLoading(false);
+            setErrorMessageCard( error.message ?? "Ha sucedido un error" );
+            console.error("Error creando el token:", error);
         }
+        
       };
-      */
+      
 
     const createUserSuscription = async () => {
         /* ToDo: Generar flujo para renovar suscripción */
@@ -561,7 +485,7 @@ const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate }) =
     <div className="max-w-md mx-auto p-6 bg-white shadow-md rounded-lg space-y-4">
        <Header />
 
-        {
+        {/* {
             visibleErrorAlert && (
                 <div className="fixed top-2/10 left-6 right-6 bg-red-400 text-white text-center py-2 shadow-lg z-50 p-3">
                     <p
@@ -570,7 +494,7 @@ const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate }) =
                     />
                 </div>
             )
-        }
+        } */}
        
 
         {/* Barra de imágenes de tarjetas aceptadas */}
@@ -591,7 +515,7 @@ const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate }) =
             type="text"
             placeholder="Descuento"
             value={discountCode}
-            onChange={(e) => setDiscountCode(e.target.value)}
+            onChange={( e) => setDiscountCode(e.target.value)}
             className="flex-grow border border-gray-300 text-sm rounded-l-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-700"
             style={{ width: '60%',color:"#326807" }} // Asignar el 70% del ancho
           />
@@ -606,102 +530,115 @@ const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate }) =
         </div>
 
 
-      {/* Input del Nombre del Titular */}
-      <div className='items-start'>
-        <label className={`block text-sm font-bold mb-1 text-left px-1 ${errorHolder ? 'text-red-600' : 'text-[#326807]'}`}>
-          Nombre del Titular
-        </label>
-        <input
-          type="text"
-          placeholder="Nombre del Titular"
-          value={cardHolder}
-          onChange={handleCardHolderChange}
-          className={`w-full px-3 py-2 border rounded-md text-gray-700 focus:outline-none focus:ring-2 ${errorHolder ? 'border-red-600 focus:ring-red-600' : 'border-gray-300 focus:ring-green-700'}`}
-          style={{color:"#326807"}}
-          disabled={inputDisabled}
-        />
-      </div>
+        {/* <form onSubmit={onSubmitPayment}> */}
 
-      {/* Otro input de texto */}
-      <div>
-        <label className={`block text-sm font-bold mb-1 text-left px-1 ${errorCard ? 'text-red-600' : 'text-[#326807]'}`}>
-          Número de Tarjeta
-        </label>
-        <input
-          type="text"
-          placeholder="Número de Tarjeta"
-          value={cardNumber}
-          onChange={handleCardNumberChange}
-          className={`w-full px-3 py-2 border rounded-md text-gray-700 focus:outline-none focus:ring-2 ${errorCard ? 'border-red-600 focus:ring-red-600' : 'border-gray-300 focus:ring-green-700'}`}
-          style={{color:"#326807"}}
-          disabled={inputDisabled}
-        />
-      </div>
+            {/* Input del Nombre del Titular */}
+            <div className='items-start'>
+                <label className={`block text-sm font-bold mb-1 text-left px-1 ${errorHolder ? 'text-red-600' : 'text-[#326807]'}`}>
+                    Nombre del Titular
+                </label>
+                <input
+                    type="text"
+                    placeholder="Nombre del Titular"
+                    value={cardHolder}
+                    onChange={handleCardHolderChange}
+                    className={`w-full px-3 py-2 border rounded-md text-gray-700 focus:outline-none focus:ring-2 ${errorHolder ? 'border-red-600 focus:ring-red-600' : 'border-gray-300 focus:ring-green-700'}`}
+                    style={{color:"#326807"}}
+                    disabled={inputDisabled}
+                />
+            </div>
 
-      {/* Inputs de Expiración y CVV */}
-      <div className="flex space-x-2">
-        <div className="flex-1">
-          <label className={`block text-sm font-bold mb-1 text-left px-1 ${errorExpiration ? 'text-red-600' : 'text-[#326807]'}`}>
-            Expiración
-          </label>
-          <input
-            type="text"
-            placeholder="MM/AA"
-            value={expiration}
-            onChange={handleExpirationChange}
-            className={`w-full px-3 py-2 border rounded-md text-gray-700 focus:outline-none focus:ring-2 ${errorExpiration ? 'border-red-600 focus:ring-red-600' : 'border-gray-300 focus:ring-green-700'}`}
-            style={{color:"#326807"}}
-            disabled={inputDisabled}
-          />
-        </div>
-        <div className="flex-1">
-          <label className={`block text-sm font-bold mb-1 text-left px-1 ${errorCVV ? 'text-red-600' : 'text-[#326807]'}`}>
-            CVV
-          </label>
-          <input
-            type="text"
-            placeholder="CVV"
-            value={cvv}
-            onChange={handleCVVChange}
-            maxLength={4}
-            className={`w-full px-3 py-2 border rounded-md text-gray-700 focus:outline-none focus:ring-2 ${errorCVV ? 'border-red-600 focus:ring-red-600' : 'border-gray-300 focus:ring-green-700'}`}
-            style={{color:"#326807"}}
-            disabled={inputDisabled}
-          />
-        </div>
-      </div>
+            {/* Input número de tarjeta */}
+            <div>
+                <label className={`block text-sm font-bold mb-1 text-left px-1 ${errorCard ? 'text-red-600' : 'text-[#326807]'}`}>
+                    Número de Tarjeta
+                </label>
+                {/* <input
+                    type="text"
+                    placeholder="Número de Tarjeta"
+                    value={cardNumber}
+                    onChange={handleCardNumberChange}
+                    className={`w-full px-3 py-2 border rounded-md text-gray-700 focus:outline-none focus:ring-2 ${errorCard ? 'border-red-600 focus:ring-red-600' : 'border-gray-300 focus:ring-green-700'}`}
+                    style={{color:"#326807"}}
+                    disabled={inputDisabled}
+                /> */}
 
-      {/* Texto con email y costo del plan */}
-      <div className="text-center mt-6">
-        <p className=" text-sm" style={{color:"#326807"}}>
-          <span className="font-semibold">Email:</span> {userEmail}
-        </p>
-        <p className=" text-sm" style={{color:"#326807"}}>
-          <span className="font-semibold">Costo del Plan:</span> {formatCurrency(planCost)}
-        </p>
-        {
-            //Solo se muestra la sección de descuento en caso de que se aplique un cupón
-            showDiscountCode &&  <p className=" text-sm" style={{color:"#faa029"}}>
-            <span className="font-semibold">Descuento:</span> {discountCode} - {discountAmount}
-          </p>
-          }
-       
-        <p className=" text-lg" style={{color:"#326807"}}>
-          <span className="font-semibold">Total a pagar:</span> {finalPrice}
-        </p>
-      </div>
+                <CardNumberElement className={`w-full px-3 py-2 border rounded-md text-gray-700 focus:outline-none focus:ring-2 ${errorCard ? 'border-red-600 focus:ring-red-600' : 'border-gray-300 focus:ring-green-700'}`} style={{color:"#326807"}}/>
+            </div>
 
-      <button
-        type="button"
-        className="w-full mt-4 text-white font-semibold rounded-md py-2 hover:bg-orange-800 focus:outline-none"
-        style={{backgroundColor: "#faa029"}}
-        onClick={onSubmitPayment}
-      >{
-        inputDisabled ? "Confirmar Registro": "Confirmar Pago"
-      }
-      </button>
+            {/* Inputs de Expiración y CVV */}
+            <div className="flex space-x-2">
+                <div className="flex-1">
+                <label className={`block text-sm font-bold mb-1 text-left px-1 ${errorExpiration ? 'text-red-600' : 'text-[#326807]'}`}>
+                    Expiración
+                </label>
+                {/* <input
+                    type="text"
+                    placeholder="MM/AA"
+                    value={expiration}
+                    onChange={handleExpirationChange}
+                    className={`w-full px-3 py-2 border rounded-md text-gray-700 focus:outline-none focus:ring-2 ${errorExpiration ? 'border-red-600 focus:ring-red-600' : 'border-gray-300 focus:ring-green-700'}`}
+                    style={{color:"#326807"}}
+                    disabled={inputDisabled}
+                /> */}
+                
+                <CardExpiryElement className={`w-full px-3 py-2 border rounded-md text-gray-700 focus:outline-none focus:ring-2 ${errorExpiration ? 'border-red-600 focus:ring-red-600' : 'border-gray-300 focus:ring-green-700'}`} style={{color:"#326807"}}/>
 
-      
+                </div>
+                <div className="flex-1">
+                    <label className={`block text-sm font-bold mb-1 text-left px-1 ${errorCVV ? 'text-red-600' : 'text-[#326807]'}`}>
+                        CVV
+                    </label>
+                    {/* <input
+                        type="text"
+                        placeholder="CVV"
+                        value={cvv}
+                        onChange={handleCVVChange}
+                        maxLength={4}
+                        className={`w-full px-3 py-2 border rounded-md text-gray-700 focus:outline-none focus:ring-2 ${errorCVV ? 'border-red-600 focus:ring-red-600' : 'border-gray-300 focus:ring-green-700'}`}
+                        style={{color:"#326807"}}
+                        disabled={inputDisabled}
+                    /> */}
+
+                    <CardCvcElement className={`w-full px-3 py-2 border rounded-md text-gray-700 focus:outline-none focus:ring-2 ${errorCVV ? 'border-red-600 focus:ring-red-600' : 'border-gray-300 focus:ring-green-700'}`} style={{color:"#326807"}}/>
+                </div>
+            </div>
+
+
+            {/* Texto con email y costo del plan */}
+            <div className="text-center mt-6">
+                <p className=" text-sm" style={{color:"#326807"}}>
+                    <span className="font-semibold">Email:</span> {userEmail}
+                </p>
+                <p className=" text-sm" style={{color:"#326807"}}>
+                    <span className="font-semibold">Costo del Plan:</span> {formatCurrency(planCost)}
+                </p>
+                {
+                    //Solo se muestra la sección de descuento en caso de que se aplique un cupón
+                    showDiscountCode &&  <p className=" text-sm" style={{color:"#faa029"}}>
+                    <span className="font-semibold">Descuento:</span> {discountCode} - {discountAmount}
+                </p>
+                }
+            
+                <p className=" text-lg" style={{color:"#326807"}}>
+                    <span className="font-semibold">Total a pagar:</span> {finalPrice}
+                </p>
+            </div>
+
+            { errorMessageCard && <label className='my-4 bg-red-500 text-white' >{errorMessageCard}</label> }
+
+            <button
+                //type="button"
+                type='submit'
+                className="w-full mt-4 text-white font-semibold rounded-md py-2 hover:bg-orange-800 focus:outline-none"
+                style={{backgroundColor: "#faa029"}}
+                onClick={onSubmitPayment}
+            >{
+                inputDisabled ? "Confirmar Registro": "Confirmar Pago"
+            }
+            </button>
+        {/* </form> */}
+
         <ModalSuccess
             visible={modalSuccessVisible}
             //visibleIndicator={indicatorVisible}

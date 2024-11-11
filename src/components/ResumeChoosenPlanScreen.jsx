@@ -117,7 +117,7 @@ function ResumeChoosenPlanScreen() {
         <div className="bg-white w-full max-w-2xl mx-auto p-5 shadow-lg rounded-lg text-center">
         <Header />
         <div className="flex flex-col items-center bg-white relative min-h-screen">
-          <h1 className="text-2xl font-extrabold mb-6" style={{color: "#326807"}}>RESUMEN DEL PLAN ELEGIDO</h1>
+          <h1 className="mt-5 text-2xl font-extrabold mb-6" style={{color: "#326807"}}>RESUMEN DEL PLAN ELEGIDO</h1>
 
           {/* Características */}
           <div className="bg-yellow-100 border border-lime-700 rounded-lg p-3 max-w-full mb-6">

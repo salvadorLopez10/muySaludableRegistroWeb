@@ -69,7 +69,7 @@ const ModalSuccess = ({
             //enableButton();
             //console.log("RESPUESTA PASSWORD CREADO");
             //console.log(JSON.stringify(responsePassword, null, 2));
-            alert("La contraseña se estableció correctamente" );
+            alert("La contraseña se estableció correctamente.\nPor favor guarda tu contraseña, la necesitarás para acceder a tu información." );
             console.log("dirigirnos a una nueva pantalla con QR de app y mostrar texto indicando que debemos descargar la app para contestar el cuestionario");
             navigate("/welcome");
             
