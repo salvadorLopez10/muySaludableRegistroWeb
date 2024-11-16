@@ -2,24 +2,31 @@
     import { useNavigate } from 'react-router-dom';
     //import axios from 'axios';
     import { MuySaludableApi } from "../api/MuySaludableApi";
+    import LoadingIndicator from "./LoadingIndicator";
 
 
     function PlanesComponent(  ) {
       const [planes, setPlanes] = useState([]);
       const [modalVisible, setModalVisible] = useState(false);
       const [selectedView, setSelectedView] = useState(null);
+      const [loading, setLoading] = useState(false);
 
       const navigate = useNavigate();
 
       useEffect(() => {
+
+        setLoading(true);
         const fetchPlanes = async () => {
-          try {
-            const response = await MuySaludableApi.get('/planesAlimenticios');
-            
+          await MuySaludableApi.get('/planesAlimenticios').then((response) => {
             setPlanes(response.data.elementos);
-          } catch (error) {
+            setLoading(false);
+      
+          }).catch((error) =>{
+            setLoading(false);
             console.error('Error al cargar los planes:', error);
-          }
+          });
+
+          
         };
 
         fetchPlanes();
@@ -48,7 +55,7 @@
 
           {/* Imagen centrada */}
           <img
-            src="/src/img/logoMuySaludableMR.png"
+            src="https://muysaludable.com.mx/img-site/logoMuySaludableMR.png"
             alt="Logo Muy Saludable"
             className="mx-auto"
             width={100}
@@ -141,6 +148,8 @@
             </div>
           </div>
         )}
+
+            { loading && <LoadingIndicator /> }
 
             </div>
           </div>

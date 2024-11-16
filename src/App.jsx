@@ -14,7 +14,7 @@ function App() {
     // <>
     //   <PlanesComponent />
     // </>
-    <Router>
+    <Router basename="/planes">
       <Routes>
         <Route path="/" element={<PlanesComponent />} />
         <Route path="/resumen-plan" element={<ResumeChoosenPlanScreen />} />

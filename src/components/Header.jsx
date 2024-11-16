@@ -14,7 +14,7 @@ function Header()  {
   >
     <a href="/" rel="noopener noreferrer">
         <img
-        src="/src/img/logoMuySaludableMR.png"
+        src="https://muysaludable.com.mx/img-site/logoMuySaludableMR.png"
         alt="Logo Muy Saludable"
         className="h-10 w-10"
         />
