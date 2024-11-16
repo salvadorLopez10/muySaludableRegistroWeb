@@ -12,7 +12,7 @@ function Header()  {
       boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)', // sombra gris
     }}
   >
-    <a href="/" rel="noopener noreferrer">
+    <a href="/planes/" rel="noopener noreferrer">
         <img
         src="https://muysaludable.com.mx/img-site/logoMuySaludableMR.png"
         alt="Logo Muy Saludable"
