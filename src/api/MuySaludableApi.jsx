@@ -14,8 +14,9 @@ async function loadConfig() {
     // Crea la instancia de Axios con la baseURL cargada dinámicamente.
     //baseURL: config.baseURL,
     MuySaludableApi = axios.create({
-      baseURL: "https://rest-server-muy-saludable-git-d4d2c5-salvadorlopez10s-projects.vercel.app/api",
+      //baseURL: "https://rest-server-muy-saludable-git-d4d2c5-salvadorlopez10s-projects.vercel.app/api",
       //baseURL: "http://192.168.1.205:8000/api",
+      baseURL: "https://muysaludableapi-252581130032.us-central1.run.app/api",
       //baseURL: config.baseURL,
       headers: {
         'Content-Type': 'application/json',

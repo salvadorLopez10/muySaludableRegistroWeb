@@ -10,27 +10,36 @@
       const [modalVisible, setModalVisible] = useState(false);
       const [selectedView, setSelectedView] = useState(null);
       const [loading, setLoading] = useState(false);
+      const [apiLoaded, setApiLoaded] = useState(false); // Estado para verificar si la API está lista
 
       const navigate = useNavigate();
 
       useEffect(() => {
-
+        const loadApiConfig = async () => {
+          await MuySaludableApi; // Asegura que la API esté cargada
+          setApiLoaded(true); // Marca que la configuración está cargada
+        };
+    
+        loadApiConfig();
+      }, []); // Este effect solo se ejecuta una vez cuando el componente se monta
+    
+      useEffect(() => {
+        if (!apiLoaded) return; // No hacer nada si la API no está cargada
+    
         setLoading(true);
         const fetchPlanes = async () => {
-          await MuySaludableApi.get('/planesAlimenticios').then((response) => {
+          try {
+            const response = await MuySaludableApi.get('/planesAlimenticios');
             setPlanes(response.data.elementos);
-            setLoading(false);
-      
-          }).catch((error) =>{
-            setLoading(false);
+          } catch (error) {
             console.error('Error al cargar los planes:', error);
-          });
-
-          
+          } finally {
+            setLoading(false);
+          }
         };
-
+    
         fetchPlanes();
-      }, []);
+      }, [apiLoaded]); // Este effect se ejecuta cuando `apiLoaded` cambia a true
 
       const handleOpenModal = (element) => {
         setSelectedView(element);
