@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { MuySaludableApi } from '../api/MuySaludableApi';
 import LoadingIndicator from './LoadingIndicator';
 import Header from './Header';
@@ -10,6 +10,8 @@ function ResumeChoosenPlanScreen() {
   const location = useLocation();
   const { selectedView } = location.state;
   const [email, setEmail] = useState("");
+  const [labelEmail, setLabelEmail] = useState("Ingresa tu correo electrónico");
+  const [fromApp, setFromApp] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const [validity, setValidity] = useState("");
@@ -18,6 +20,7 @@ function ResumeChoosenPlanScreen() {
   const handleEmailChange = (e) => setEmail(e.target.value);
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     console.log("selectedview")
@@ -28,7 +31,23 @@ function ResumeChoosenPlanScreen() {
     setExpirationDate(vigencia[1]);
     console.log(JSON.stringify(vigencia,null,2));
 
+    //Obtenemos el email de la url
+    getEmailFromUrl();
+
   }, [selectedView]);
+
+  const getEmailFromUrl = () => {
+    const emailFromURL = searchParams.get('email');
+
+    if( emailFromURL == null ){
+      setEmail("");
+    }else{
+      setEmail(emailFromURL);
+      setLabelEmail("Tu correo electrónico es:");
+      setFromApp(true);
+    } 
+
+  }
 
   const setValidityDate = (selectedPlan) => {
     const currentDate = new Date();
@@ -65,6 +84,7 @@ function ResumeChoosenPlanScreen() {
   const handleConfirmEmail = async() => {
     if( email.trim() == "" ){
       alert("Favor de ingresar el email");
+      return;
     }else {
       const validRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
       if (!email.match(validRegex)) {
@@ -73,41 +93,44 @@ function ResumeChoosenPlanScreen() {
       } 
     }
 
-    const requestEmail = {
-      "email": email
-    }
+    //navigate(`/resumen-plan?email=${encodeURIComponent(email)}`, { state: { selectedView } });
+    navigate("/payment", { state: { email, precio: selectedView.precio, selectedView, expirationDate, accountCreatedFromApp: fromApp} });
 
-    setLoading(true);
-    await MuySaludableApi.post(
-      "/usuarios/checkEmail",
-      requestEmail
-    ).then((response) => {
+    // const requestEmail = {
+    //   "email": email
+    // }
 
-      setLoading(false);
-     //console.log(JSON.stringify(response,null,2));
-     if (response.data.status == "Duplicate") {
+    // setLoading(true);
+    // await MuySaludableApi.post(
+    //   "/usuarios/checkEmail",
+    //   requestEmail
+    // ).then((response) => {
 
-       alert("El email que ingresaste ya existe, favor de intentar con uno diferente");
-       return;
-     }
+    //   setLoading(false);
+    //  //console.log(JSON.stringify(response,null,2));
+    //  if (response.data.status == "Duplicate") {
 
-     navigate("/payment", { state: { email, precio: selectedView.precio, selectedView, expirationDate} });
+    //    alert("El email que ingresaste ya existe, favor de intentar con uno diferente");
+    //    return;
+    //  }
+
+    //  navigate("/payment", { state: { email, precio: selectedView.precio, selectedView, expirationDate} });
 
 
-    }).catch((error) => {
-       // console.log("Error al verificar el email");
-       // console.log(JSON.stringify(error, null, 2));
-       setLoading(false);
-       alert("No se ha podido verificar el email, favor de intentar nuevamente");
-       if (error.response && error.response.data) {
-         if (!error.response.data.success) {
+    // }).catch((error) => {
+    //    // console.log("Error al verificar el email");
+    //    // console.log(JSON.stringify(error, null, 2));
+    //    setLoading(false);
+    //    alert("No se ha podido verificar el email, favor de intentar nuevamente");
+    //    if (error.response && error.response.data) {
+    //      if (!error.response.data.success) {
            
-           console.log("Mensaje de error: ", error.response.data.message);
-         }
-       } else {
-         console.log("Error en la transacción SIN DATA:", error.message);
-       }
-   });
+    //        console.log("Mensaje de error: ", error.response.data.message);
+    //      }
+    //    } else {
+    //      console.log("Error en la transacción SIN DATA:", error.message);
+    //    }
+    // });
 
   }
 
@@ -145,7 +168,7 @@ function ResumeChoosenPlanScreen() {
           {/* Campo de correo electrónico */}
           <div className="border md:bg-opacity-70 border-lime-700 rounded-lg p-4 w-11/12 mb-4" style={{backgroundColor: "rgba(85, 133, 31, 0.7)"}}>
             <label className="block text-white font-bold mb-2" htmlFor="email">
-              Ingresa tu correo electrónico
+              { labelEmail }
             </label>
             <input
               id="email"

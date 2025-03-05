@@ -13,7 +13,7 @@ function PaymentScreen(  ) {
 
     const location = useLocation();
     console.log(location);
-    const { email, precio, selectedView, expirationDate } = location.state;
+    const { email, precio, selectedView, expirationDate, accountCreatedFromApp } = location.state;
     
     return (
         <div className="bg-gray-200 min-h-screen flex justify-center">
@@ -21,7 +21,7 @@ function PaymentScreen(  ) {
                 <div className="flex flex-col items-center bg-white relative min-h-screen">
 
                 <Elements stripe={stripePromise}>
-                    <CreditCardForm userEmail={email} planCost={Number(precio)} selectedPlan={selectedView} expirationDate={expirationDate}/>
+                    <CreditCardForm userEmail={email} planCost={Number(precio)} selectedPlan={selectedView} expirationDate={expirationDate} fromApp={accountCreatedFromApp}/>
                 </Elements>
                 </div>
             </div>

@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import Header from './Header';
 import { useEffect, useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import LoadingIndicator from './LoadingIndicator';
 import { MuySaludableApi } from '../api/MuySaludableApi';
 import ModalSuccess from './ModalSuccess';
@@ -18,7 +19,7 @@ const formatCurrency = (amount) => {
     });
   };
 
-const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate }) => {
+const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate, fromApp }) => {
     const [loading, setLoading] = useState(false);
     const [visibleErrorAlert, setVisibleErrorAlert] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
@@ -58,6 +59,7 @@ const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate }) =
 
     const stripe = useStripe();
     const elements = useElements();
+    const navigate = useNavigate();
 
     useEffect(() => {
         // console.log("EFFECT VALUES CREDITCARDFORM");
@@ -66,7 +68,7 @@ const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate }) =
       }, []);
 
     useEffect(() => {
-        if (idUsuario) {
+        if (idUsuario && !fromApp) {
             showSuccessModal();
         }
     }, [idUsuario]);
@@ -78,7 +80,7 @@ const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate }) =
           console.log(JSON.stringify(response.data.data,null,2));
           setValStripe(response.data.data);
     
-        }).catch(() =>{
+        }).catch((error) =>{
           console.log("Error al obtener key de stripe client");
           console.log(error);
         });
@@ -388,18 +390,28 @@ const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate }) =
                             setLoading(false);
 
                             //showSuccessModal();
+                            //Si el usuario viene de la App, mandamos directamente a Welcome para no mostrar Modal para establecer password
+                            if( fromApp ){
+                              navigate("/welcome");
+                            }
 
 
                           }).catch( (errorSuscripcion) => {
+                            setLoading(false);
+                            alert("Ha ocurrido un error al generar suscripción: " + JSON.stringify(errorSuscripcion,null,1));
 
                           });
 
-                    })
-                    .catch();
+                    }).catch( (errorCreacionUsuario) => {
+                      setLoading(false);
+                      alert("Ha ocurrido un error al generar suscripción: " + JSON.stringify(errorCreacionUsuario,null,1));
+
+                    });
 
 
                 }).catch((error) => {
-
+                  setLoading(false);
+                  alert("Ha ocurrido un error con el pago: " + JSON.stringify(error,null,1));
                 });
 
             }else{
@@ -454,6 +466,11 @@ const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate }) =
                    // setIdUsuario(responseSuscripcion.data.data.id_usuario);
 
                     setLoading(false);
+
+                    //Si el usuario viene desde la app, no se solicita la contraseña y se envía directo a pantalla de bienvenida
+                    if( fromApp ){
+                      navigate("/welcome");
+                    }
 
                     //Muestra ventana modal para establecer contraseña
                     //showSuccessModal();

@@ -32,7 +32,7 @@ function WelcomeScreen(  ) {
                         <a href="https://play.google.com/store" target="_blank" rel="noopener noreferrer">
                             <img src="https://muysaludable.com.mx/img-site/google_play.png" alt="Google Play" className="w-32 h-auto" />
                         </a>
-                        <a href="https://apps.apple.com/store" target="_blank" rel="noopener noreferrer">
+                        <a href="https://apps.apple.com/mx/app/muy-saludable/id6714454048" target="_blank" rel="noopener noreferrer">
                             <img src="https://muysaludable.com.mx/img-site/app_store.png" alt="App Store" className="w-32 h-auto" />
                         </a>
                     </div>

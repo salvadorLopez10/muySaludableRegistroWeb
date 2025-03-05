@@ -1,5 +1,5 @@
     import { useEffect,useState } from "react";
-    import { useNavigate } from 'react-router-dom';
+    import { useNavigate, useSearchParams } from 'react-router-dom';
     //import axios from 'axios';
     import { MuySaludableApi } from "../api/MuySaludableApi";
     import LoadingIndicator from "./LoadingIndicator";
@@ -13,6 +13,11 @@
       const [apiLoaded, setApiLoaded] = useState(false); // Estado para verificar si la API está lista
 
       const navigate = useNavigate();
+
+      const [searchParams] = useSearchParams();
+    
+      // Obtener el valor del parámetro "email"
+      const email = searchParams.get('email');
 
       useEffect(() => {
         const loadApiConfig = async () => {
@@ -52,7 +57,14 @@
 
       const handleSelectPlan = () => {
         //navigate('/resumen-plan');
-        navigate("/resumen-plan", { state: { selectedView } });
+        //navigate("/resumen-plan", { state: { selectedView } });
+
+        if(email){
+          navigate(`/resumen-plan?email=${encodeURIComponent(email)}`, { state: { selectedView } });
+        }else{
+          navigate("/resumen-plan", { state: { selectedView } });
+        }
+
       }; 
 
 
