@@ -6,8 +6,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 //import { useState } from "react";
 
-const stripePromise = loadStripe('pk_test_51Oq6azDzbFBwqYhA6mgKDESqSCCkb35K5f50LwY2MWh5QWYjm756QnFTrWt14E8lJNMttoxiYs7CXOYlmgjRdsOy00xHRmKGWg');
-
+const stripePromise = loadStripe( import.meta.env.VITE_STRIPE_PUBLIC_KEY );
 
 function PaymentScreen(  ) {
 

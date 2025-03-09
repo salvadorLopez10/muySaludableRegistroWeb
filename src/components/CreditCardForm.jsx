@@ -410,8 +410,16 @@ const CreditCardForm = ({ userEmail, planCost, selectedPlan, expirationDate, fro
 
 
                 }).catch((error) => {
+                  console.log(JSON.stringify(error,null,1));
                   setLoading(false);
-                  alert("Ha ocurrido un error con el pago: " + JSON.stringify(error,null,1));
+                  // Acceder al mensaje de error enviado desde el backend
+                  if (error.response && error.response.data && error.response.data.message) {
+                    setErrorMessageCard("Ha ocurrido un error, verifica tus datos y vuelve a intentar.");
+                    alert("Ha ocurrido un error con el pago: " + error.response.data.message);
+                  } else {
+                    alert("Ha ocurrido un error desconocido con el pago.");
+                    setErrorMessageCard("Ha ocurrido un error, verifica tus datos y vuelve a intentar.");
+                  }
                 });
 
             }else{
